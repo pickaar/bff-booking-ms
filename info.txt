@@ -1,0 +1,8 @@
+********DB
+
+Username: pickaarUserdbdev
+password: pickaarUserdbdev
+
+
+MongoDb: mongodb+srv://pickaarBookingsdbdev:pickaarBookingsdbdev@pickaarusercluster.paiwbzf.mongodb.net/?retryWrites=true&w=majority
+COMPASS: mongodb+srv://pickaarBookingsdbdev:pickaarBookingsdbdev@pickaarbookingcluster.kaxqanv.mongodb.net/test

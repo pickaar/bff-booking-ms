@@ -1,0 +1,39 @@
+{
+  "name": "pickaar-booking-service",
+  "version": "2.0.0",
+  "description": "Booking service for Pickaar Customer and Vendor",
+  "main": "app.js",
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "start": "NODE_ENV=production node app.js",
+    "start:dev": "NODE_ENV=development nodemon app.js",
+    "start:prod": "NODE_ENV=production node app.js",
+    "start:staging": "NODE_ENV=staging node app.js",
+    "lint": "eslint ./src --ext .js",
+    "fix": "eslint ./src --ext .js --fix",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "kamesh",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "date-and-time": "^3.1.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "http-status": "^1.7.4",
+    "mongodb": "^6.10.0",
+    "mongoose": "^8.8.4",
+    "node-schedule": "^2.1.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9",
+    "eslint": "^9.18.0"
+  }
+}
