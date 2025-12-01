@@ -6,6 +6,7 @@ const { sendPushNotificationToDrivers } = require('../../schedulers/cabbooking.s
 const mockData = require('../helpers/mockData');
 const { getDistance, calculatePickaarCommission, convertStringToISODate } = require('../helpers/utils');
 const { convertToMongoDate } = require('../../utils/helper');
+const { getRouteInformation } = require('../../utils/googleMap');
 
 /**
  * Get active booking by phone number
@@ -48,9 +49,15 @@ exports.getActiveBooking = async (phoneNo) => {
  * @returns {Promise<Object>} Toll details
  */
 exports.getTollDetails = async (tollReqObj) => {
-  // TODO: Integrate with actual toll API
-  const result = mockData.tollAPI;
-
+  console.log("TOLL REQ OBJ:", tollReqObj);
+  if (!tollReqObj || !tollReqObj.from || !tollReqObj.to) {
+    throw new APIError({
+      message: 'Both "from" and "to" addresses are required',
+      status: httpStatus.BAD_REQUEST,
+    });
+  }
+  const result = await getRouteInformation(tollReqObj.from, tollReqObj.to);
+  
   if (!result) {
     throw new APIError({
       message: 'Toll data not available',

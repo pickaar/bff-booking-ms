@@ -17,7 +17,9 @@ exports.getActiveBooking = asyncHandler(async (req, res) => {
  * Get toll details for a route
  */
 exports.getTollDetails = asyncHandler(async (req, res) => {
-  const result = await bookingService.getTollDetails(req.body);
+  const { from, to } = req.query;
+  console.log("CONTROLLER REQ QUERY:", req.query);
+  const result = await bookingService.getTollDetails(req.query);
   return successResponse(res, result.message, result.data);
 });
 

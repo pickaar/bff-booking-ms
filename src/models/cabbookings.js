@@ -18,6 +18,7 @@ const address = new Schema({
     landmark: { type: String },
     city: { type: String, required: true },
     state: { type: String, required: true },
+    address: { type: String},
     pincode: { type: Number },
 }, { _id: false })
 

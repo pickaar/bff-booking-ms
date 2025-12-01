@@ -31,12 +31,19 @@ router.route('/getActiveBooking/:phoneNo').get(controller.getActiveBooking);
  *   get:
  *     summary: Get toll details for a route
  *     tags: [Bookings]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
+ *     parameters:
+ *       - in: query
+ *         name: from
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The starting point of the route.
+ *       - in: query
+ *         name: to
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The destination of the route.
  *     responses:
  *       200:
  *         description: Route toll data available
