@@ -6,7 +6,7 @@ const { sendPushNotificationToDrivers } = require('../../schedulers/cabbooking.s
 const mockData = require('../helpers/mockData');
 const { getDistance, calculatePickaarCommission, convertStringToISODate } = require('../helpers/utils');
 const { convertToMongoDate } = require('../../utils/helper');
-const { getRouteInformation } = require('../../utils/googleMap');
+const { getRouteInformationWithRoutesAPI } = require('../../utils/googleMap.js');
 
 /**
  * Get active booking by phone number
@@ -56,8 +56,8 @@ exports.getTollDetails = async (tollReqObj) => {
       status: httpStatus.BAD_REQUEST,
     });
   }
-  const result = await getRouteInformation(tollReqObj.from, tollReqObj.to);
-  
+  const result = await getRouteInformationWithRoutesAPI(tollReqObj.from, tollReqObj.to);
+
   if (!result) {
     throw new APIError({
       message: 'Toll data not available',
@@ -78,29 +78,26 @@ exports.getTollDetails = async (tollReqObj) => {
  * @returns {Promise<Object>} Created booking details
  */
 exports.initCabBooking = async (booking) => {
-  // Validate and convert dates
-
   const { pickUpDate, pickUpTime, tripType, returnDate } = booking;
 
+  // Validate and convert pickup date
   const convertedDate = await convertStringToISODate(pickUpDate, pickUpTime);
   if (!convertedDate[0]) {
     throw new APIError({
-      message: convertedDate[1] || 'Date is not valid',
+      message: convertedDate[1] || 'Pickup date is not valid',
       status: httpStatus.BAD_REQUEST,
     });
   }
-
   booking.pickUpDate = convertedDate[1];
 
-  // Handle round trip
+  // Handle round trip return date
   if (tripType === 2) {
     if (!returnDate) {
       throw new APIError({
-        message: 'Round Trip should have Return date',
+        message: 'Round trip requires a return date',
         status: httpStatus.BAD_REQUEST,
       });
     }
-
     const convertedReturnDate = await convertStringToISODate(returnDate);
     if (!convertedReturnDate[0]) {
       throw new APIError({
@@ -108,29 +105,51 @@ exports.initCabBooking = async (booking) => {
         status: httpStatus.BAD_REQUEST,
       });
     }
-
     booking.returnDate = convertedReturnDate[1];
   }
 
-  // Calculate distance and commission
-  const distance = getDistance(booking?.distance);
-  const pickaarCommission = calculatePickaarCommission(distance);
-  booking.distance = distance;
-  booking.pickaarCommission = pickaarCommission;
-  const convertedPickUpDate = convertToMongoDate(pickUpDate, pickUpTime);
-  booking.pickUpDate = convertedPickUpDate;
-  const newBookingResult = await bookingsRepository.create(booking);
+  // Helper function to process coordinates
+  const processCoordinates = (address) => {
+    if (!address.latlng) {
+      address.latlng = { type: 'Point' };
+    }
+    const { coordinates } = address;
+    if (Array.isArray(coordinates) && coordinates.length === 2) {
+      // Mongoose expects [Longitude, Latitude]
+      address.latlng.coordinates = [coordinates[1], coordinates[0]];
+    } else {
+      address.latlng.coordinates = [];
+    }
+  };
 
+  processCoordinates(booking.pickupAddress);
+  processCoordinates(booking.dropAddress);
+
+  // Validate coordinates
+  if (booking.pickupAddress.latlng.coordinates.length !== 2) {
+    throw new APIError({
+      message: 'Pickup coordinates are missing or invalid.',
+      status: httpStatus.BAD_REQUEST,
+    });
+  }
+  if (booking.dropAddress.latlng.coordinates.length !== 2) {
+    throw new APIError({
+      message: 'Drop-off coordinates are missing or invalid.',
+      status: httpStatus.BAD_REQUEST,
+    });
+  }
+
+  // Calculate distance and commission
+  booking.pickaarCommission = calculatePickaarCommission(getDistance(booking?.distance?.value));
+  booking.pickUpDate = convertToMongoDate(pickUpDate, pickUpTime);
+
+  const newBookingResult = await bookingsRepository.create(booking);
   if (!newBookingResult) {
     throw new APIError({
       message: 'Failed to create new booking',
       status: httpStatus.INTERNAL_SERVER_ERROR,
     });
   }
-
-  // Send notification to drivers
-  // const district = booking.pickupAddress.district;
-  // await sendPushNotificationToDrivers(district, 5000);
 
   // Create quote document for this booking
   const quoteResult = await quotesRepository.create({
@@ -139,8 +158,9 @@ exports.initCabBooking = async (booking) => {
   });
 
   if (!quoteResult) {
+    // Consider rolling back the booking creation or logging this for manual intervention
     throw new APIError({
-      message: 'Failed to create quote document',
+      message: 'Failed to create quote document for the booking',
       status: httpStatus.INTERNAL_SERVER_ERROR,
     });
   }

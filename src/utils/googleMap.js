@@ -1,69 +1,116 @@
-import { Client } from "@googlemaps/google-maps-services-js";
+// import { Client } from '@googlemaps/google-maps-services-js';
+// import * as Maps from '@googlemaps/google-maps-services-js';
+// const { Client } = require('@googlemaps/google-maps-services-js');
+// Make sure your API key has the "Routes API" enabled in the Google Cloud Console.
+const API_KEY = process.env.GOOGLE_CLIENT_ID;
+// const client = new Client({});
+// console.log(API_KEY + 'Available Client Methods:', Object.keys(client));
+/**
+ * Helper function to convert seconds to a readable H:MM format.
+ * @param {number} totalSeconds - Duration in seconds.
+ * @returns {string} - Duration in "X hour(s) Y min(s)" format.
+ */
+function formatDuration(totalSeconds) {
+    if (totalSeconds < 60) return `${totalSeconds} seconds`;
 
-const API_KEY = process.env.GOOGLE_CLIENT_ID; 
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
 
-const client = new Client({});
+    let parts = [];
+    if (hours > 0) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
+    if (minutes > 0) parts.push(`${minutes} min${minutes > 1 ? 's' : ''}`);
 
-export async function getRouteInformation(originAddress, destinationAddress) {
+    return parts.join(' ');
+}
+
+export async function getRouteInformationWithRoutesAPI(originAddress, destinationAddress) {
     try {
-        console.log(`\nFinding route from ${originAddress} to ${destinationAddress}...`);
-console.log("API KEY:", API_KEY);
-        // The Directions API accepts address strings directly
-        const response = await client.directions({
-            params: {
-                origin: originAddress,
-                destination: destinationAddress,
-                mode: "driving",
-                units: "metric", // Use metric units (kilometers/meters)
-                // This parameter hints to the API to avoid toll roads, 
-                // but the response structure also includes toll info if present.
-                // For accurate TOLL PRICE, you should use the Routes API (computeRoutes endpoint).
-                key: API_KEY,
-            },
-        });
+        console.log(originAddress, '------=====-', typeof originAddress);
+        console.log(destinationAddress, '---------------', typeof destinationAddress);
+        // const response = await client.routes({
+        //     params: {
+        //         // origin: { address: originAddress },
+        //         // destination: { address: destinationAddress },
+        //         origin: { latLng: { latitude: originAddress[0], longitude: originAddress[1] } }, // Approximate Perumbakkam
+        //         destination: { latLng: { latitude: destinationAddress[0], longitude: destinationAddress[1] } }, // Katpadi Railway Station
+        //         travelMode: "DRIVE",
+        //         // 1. Request toll information computation
+        //         extraComputations: ["TOLLS"],
+        //         // 2. Specify the exact fields we need (mandatory for Routes API)
+        //         fields: [
+        //             "routes.duration", "routes.travelAdvisory.tollInfo"
+        //         ],
+        //         key: API_KEY,
+        //     },
+        // });
+        // const response = await client.routes({
+        //     params: {
+        //         origin: { latLng: { latitude: 13.011023, longitude: 77.554715 } },
+        //         destination: { latLng: { latitude: 12.840641, longitude: 80.153428 } },
+        //         travelMode: "DRIVE",
+        //         // --- REMOVE extraComputations: ["TOLLS"] ---
 
-        const route = response.data.routes[0];
-        if (!route) {
-            return;
-        }
+        //         // --- UPDATE Field Mask ---
+        //         fields: [
+        //             "routes.distanceMeters",
+        //             "routes.duration"
+        //         ],
+        //         key: API_KEY,
+        //     },
+        // });
+        // const route = response.data.routes[0];
+        // if (!route) {
+        //     console.log('No route found.');
+        //     return;
+        // }
 
-        const leg = route.legs[0]; // Get the main journey leg
+        // // --- Data Extraction and Formatting ---
 
-        // --- 2. Distance between from and two ---
-        const distance = leg.distance.text;
+        // // Distance: Convert meters to kilometers and round
+        // const distanceKM = (route.distanceMeters / 1000).toFixed(1) + ' km';
 
-        // --- 3. Duration to reach the destination ---
-        const duration = leg.duration.text;
-        
-        // --- 1. Toll available for this route ---
-        let tollStatus;
-        if (route.summary.includes('Toll')) {
-            tollStatus = true;
-        } else {
-            tollStatus = false;
-        }
-        
-        // --- 4. Toll Price (Note on Accuracy) ---
-        // For the precise toll price, the dedicated Routes API (computeRoutes) is the official method.
-        // The basic Directions API is better for determining *if* tolls exist.
-        const tollPriceNote = 'For accurate toll price, enable the Routes API and use the computeRoutes endpoint.';
-        
-        console.log("\n--- Route Details ---");
-        console.log(`Origin: ${originAddress}`);
-        console.log(`Destination: ${destinationAddress}`);
-        console.log(`\n1. Toll Available: **${tollStatus}**`);
-        console.log(`2. Distance: **${distance}**`);
-        console.log(`3. Duration: **${duration}**`);
-        console.log(`\n**Note on Toll Price:** ${tollPriceNote}`);
+        // // Duration: Convert duration string (e.g., "16500s") to seconds, then format
+        // const durationSeconds = parseInt(route.duration.replace('s', ''));
+        // const durationFormatted = formatDuration(durationSeconds);
 
-        return{
-            tollAvailable: tollStatus,
-            distance: distance,
-            duration: duration,
-            tollPriceNote: tollPriceNote
+        // // Toll Status and Price
+        // let tollAvailable = false;
+        // let tollPrice = 'N/A';
+        // let currency = '';
+
+        // const tollInfo = route.travelAdvisory?.tollInfo;
+
+        // if (tollInfo && tollInfo.estimatedPrice && tollInfo.estimatedPrice.length > 0) {
+        //     const priceData = tollInfo.estimatedPrice[0];
+
+        //     tollAvailable = true;
+        //     tollPrice = priceData.units.toFixed(2); // Format price to two decimal places
+        //     currency = priceData.currencyCode;
+        // }
+
+        // // --- Console Output ---
+        // console.log("\n--- Routes API Result ---");
+        // console.log(`Origin: ${originAddress}`);
+        // console.log(`Destination: ${destinationAddress}`);
+        // console.log(`\n1. Distance: **${distanceKM}**`);
+        // console.log(`2. Duration: **${durationFormatted}**`);
+        // console.log(`3. Toll Available: **${tollAvailable}**`);
+        // console.log(`4. Estimated Toll Price: **${tollAvailable ? `${tollPrice} ${currency}` : 'None'}**`);
+        // console.log(`\n*Note: The toll price is an estimate and may vary based on payment method.*`);
+
+
+        return {
+            from: originAddress,
+            to: destinationAddress,
+            tollAvailable: true,
+            distance: { text: "10.5 km", value: 10500 }, //distanceKM,
+            duration: { text: "25 mins", value: 1500 }, //durationFormatted,
+            tollPrice: 150.00, //parseFloat(tollPrice),
+            currency: "INR" //`${tollPrice} ${currency}`
         }
 
     } catch (error) {
-        console.error('\nError fetching directions:', error.response?.data?.error_message || error.message);
+        // console.error('\nError fetching routes:', error.response?.data?.error_message || error.message);
+        console.error('Check if the "Routes API" is enabled in your Google Cloud Console.');
     }
 }

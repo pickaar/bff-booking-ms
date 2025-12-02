@@ -13,8 +13,8 @@ exports.addMonth = (now, months) => {
 }
 
 
-exports.getDistance = (distanceStr) => {
-    return parseInt(distanceStr.split(" ")[0])
+exports.getDistance = (distance) => {
+    return distance.toFixed(2);
 }
 
 exports.calculatePickaarCommission = (distance) => {
