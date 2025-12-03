@@ -54,7 +54,7 @@ const cabQuotesSchema = new Schema({
 });
 
 
-const cabQuotesModel = mongoose.model('cabquotes', cabQuotesSchema);
+const cabQuotesModel = mongoose.model('vehicle_quotes', cabQuotesSchema);
 cabQuotesModel.createIndexes({ bookingRefId: 1 });
 
 module.exports = cabQuotesModel;

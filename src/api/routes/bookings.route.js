@@ -75,6 +75,27 @@ router.route('/tollRoute').get(controller.getTollDetails);
  *         description: Invalid booking data
  */
 router.route('/newBooking').post(controller.initCabBooking);
+/**
+ * @swagger
+ * /api/booking/getBookingsByUserID:
+ *   get:
+ *     summary: Get cab booking list by User ID
+ *     description: Customer App. Costly API. Returns booking list by User ID
+ *     tags: [Bookings]
+ *     parameters:
+ *       - in: query
+ *         name: userID
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Customer User ID
+ *     responses:
+ *       200:
+ *         description: Booking list found
+ *       404:
+ *         description: No bookings found
+ */
+router.route('/getBookingsByUserID').get(controller.getBookingsByUserID);
 
 /**
  * @swagger
@@ -104,27 +125,6 @@ router.route('/newBooking').post(controller.initCabBooking);
  */
 router.route('/getCabBookingList').post(controller.getCabBookingList);
 
-/**
- * @swagger
- * /api/booking/getCabBookingListByPhoneNo:
- *   get:
- *     summary: Get cab booking list by phone number
- *     description: Customer App. Costly API. Returns booking list by phone number
- *     tags: [Bookings]
- *     parameters:
- *       - in: query
- *         name: phoneNo
- *         required: true
- *         schema:
- *           type: string
- *         description: Customer phone number
- *     responses:
- *       200:
- *         description: Booking list found
- *       404:
- *         description: No bookings found
- */
-router.route('/getCabBookingListByPhoneNo').get(controller.getCabBookingListByPhoneNo);
 
 /**
  * @swagger

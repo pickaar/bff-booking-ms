@@ -12,7 +12,8 @@ class BookingsRepository {
    * @returns {Promise<Object>} Created booking
    */
   async create(bookingData) {
-    return db.cabbookings.create(bookingData);
+    // 🌟 CORRECTED: Using the new model name
+    return db.vehicle_bookings.create(bookingData);
   }
 
   /**
@@ -21,7 +22,8 @@ class BookingsRepository {
    * @returns {Promise<Object|null>} Booking or null
    */
   async findById(bookingId) {
-    return db.cabbookings.findById(toObjectId(bookingId));
+    // 🌟 CORRECTED: Using the new model name
+    return db.vehicle_bookings.findById(toObjectId(bookingId));
   }
 
   /**
@@ -30,7 +32,18 @@ class BookingsRepository {
    * @returns {Promise<Array>} Array of bookings
    */
   async findByFilter(filter) {
-    return db.cabbookings.find(filter);
+    // 🌟 CORRECTED: Using the new model name
+    return db.vehicle_bookings.find(filter);
+  }
+
+  /**
+  * Find acting driver bookings by filter
+  * @param {Object} filter - Filter criteria
+  * @returns {Promise<Array>} Array of bookings
+  */
+  async findActingDriverBookingsByFilter(filter) {
+    // 🌟 CORRECTED: Using the new model name
+    return db.acting_driver_bookings.find(filter);
   }
 
   /**
@@ -39,7 +52,10 @@ class BookingsRepository {
    * @returns {Promise<Array>} Array of bookings
    */
   async findByPhoneNo(phoneNo) {
-    return db.cabbookings.find({ 'user.phoneNo': phoneNo });
+    // 🌟 CORRECTED: Using the new model name
+    // NOTE: This method queries an embedded user. If you use the ObjectID reference, 
+    // this query field ('user.phoneNo') might be obsolete.
+    return db.vehicle_bookings.find({ 'user.phoneNo': phoneNo });
   }
 
   /**
@@ -48,6 +64,7 @@ class BookingsRepository {
    * @returns {Promise<Array>} Array of active bookings
    */
   async findActiveBookingByPhoneNo(phoneNo) {
+    // Assuming 'activecabbookings' did not change its name in the other model definition
     return db.activecabbookings.find({ 'booking.user.phoneNo': phoneNo });
   }
 
@@ -57,7 +74,8 @@ class BookingsRepository {
    * @returns {Promise<Object>} Deletion result
    */
   async deleteById(bookingId) {
-    return db.cabbookings.deleteOne({ _id: toObjectId(bookingId) });
+    // 🌟 CORRECTED: Using the new model name
+    return db.vehicle_bookings.deleteOne({ _id: toObjectId(bookingId) });
   }
 
   /**
@@ -66,9 +84,9 @@ class BookingsRepository {
    * @returns {Promise<Object>} Created active booking
    */
   async createActiveBooking(activeBookingData) {
+    // Assuming 'activecabbookings' did not change its name in the other model definition
     return db.activecabbookings.create(activeBookingData);
   }
 }
 
 module.exports = new BookingsRepository();
-

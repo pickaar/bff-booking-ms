@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+// Address Schema (remains embedded as it's context-specific to the booking)
 const address = new Schema({
     latlng: { 
         type: { type: String, default: "Point" }, 
-        coordinates: { type: [Number] } // Explicitly define as an array of Numbers
+        coordinates: { type: [Number] }
     },
     flatHouseNo: { type: String },
     buildingStreet: { type: String },
@@ -14,13 +15,7 @@ const address = new Schema({
     state: { type: String, required: true },
     address: { type: String},
     pincode: { type: Number },
-}, { _id: false })
-
-const userSchma = new Schema({
-    phoneNo: { type: Number, required: true, minLength: 7, maxLength: 12 },
-    userName: { type: String },
-    emailId: { type: String }
-});
+}, { _id: false });
 
 const keyValueSchema = new Schema({
     text: { type: String },
@@ -29,7 +24,12 @@ const keyValueSchema = new Schema({
 
 var bookingsSchema = new Schema({
     bookingStatus: { type: Boolean, default: false },
-    user: { type: userSchma, required: true },
+    userID: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'cust_users', 
+        required: true 
+    },
+    
     pickupAddress: { type: address, required: true },
     dropAddress: { type: address, required: true },
     pickUpDate: { type: Date, required: true },
@@ -42,7 +42,7 @@ var bookingsSchema = new Schema({
         type: Number,
         required: true
     },
-    tripType: { type: Number, required: true, default: 1 }, // 1 - ONE WAY, 2 - ROUND TRIP
+    tripType: { type: Number, required: true, default: 1 },
     returnDate: { type: Date },
     comments: { type: String },
     distance: { type: keyValueSchema },
@@ -55,21 +55,16 @@ var bookingsSchema = new Schema({
     pickaarCommission: { type: Number},
 });
 
-/// --- GEOSPATIAL INDEX DEFINITIONS ---
+// --- INDEX DEFINITIONS ---
 
-// 1. Index for Pickup Address Coordinates
-// This creates a 2dsphere index on the 'latlng' sub-field within the 'pickupAddress' object.
-// This is necessary for efficient geo-spatial queries (e.g., finding nearby cabs to the pickup location).
+// Geospatial Indexes
 bookingsSchema.index({ 'pickupAddress.latlng': '2dsphere' });
-
-// 2. Index for Drop Address Coordinates
-// Similarly, this creates a 2dsphere index on the drop location.
 bookingsSchema.index({ 'dropAddress.latlng': '2dsphere' });
 
+// Strategic Index on the User Reference
+bookingsSchema.index({ user: 1 }); 
+bookingsSchema.index({ bookingStatus: 1, user: 1 }); 
 
-const bookingsModel = mongoose.model('cabbookings', bookingsSchema)
-
-
-// bookingsModel.createIndexes({ vendorPhoneNo: 1 });
+const bookingsModel = mongoose.model('vehicle_bookings', bookingsSchema)
 
 module.exports = bookingsModel;

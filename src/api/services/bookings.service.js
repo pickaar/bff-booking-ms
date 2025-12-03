@@ -7,6 +7,7 @@ const mockData = require('../helpers/mockData');
 const { getDistance, calculatePickaarCommission, convertStringToISODate } = require('../helpers/utils');
 const { convertToMongoDate } = require('../../utils/helper');
 const { getRouteInformationWithRoutesAPI } = require('../../utils/googleMap.js');
+const { toObjectId } = require('../../utils/mongoose.js');
 
 /**
  * Get active booking by phone number
@@ -78,7 +79,7 @@ exports.getTollDetails = async (tollReqObj) => {
  * @returns {Promise<Object>} Created booking details
  */
 exports.initCabBooking = async (booking) => {
-  const { pickUpDate, pickUpTime, tripType, returnDate } = booking;
+  const { pickUpDate, pickUpTime, tripType, returnDate, } = booking;
 
   // Validate and convert pickup date
   const convertedDate = await convertStringToISODate(pickUpDate, pickUpTime);
@@ -172,64 +173,69 @@ exports.initCabBooking = async (booking) => {
   };
 };
 
-/**
- * Get cab booking list by filters
- * @param {Object} filterObj - Filter object
- * @returns {Promise<Object>} List of bookings
- */
-exports.getCabBookingList = async (filterObj) => {
-  const { vehicleType, distance, district, pickUpDate } = filterObj;
-
-  const filterQuery = {};
-
-  if (vehicleType) filterQuery.vehicleType = vehicleType;
-  if (district) filterQuery['pickupAddress.district'] = district;
-  if (pickUpDate) filterQuery.pickUpDate = pickUpDate;
-  // Note: distance filtering can be added here if needed
-
-  if (Object.keys(filterQuery).length === 0) {
-    throw new APIError({
-      message: 'Kindly pass any filter param { vehicleType, distance, district, pickUpDate } to find Cab Bookings',
-      status: httpStatus.BAD_REQUEST,
-    });
-  }
-
-  const queryResult = await bookingsRepository.findByFilter(filterQuery);
-
-  return {
-    status: httpStatus.OK,
-    message: 'Records Found',
-    data: queryResult,
-  };
-};
 
 /**
  * Get cab booking list by phone number
  * @param {number} phoneNo - Phone number
  * @returns {Promise<Object>} List of bookings
  */
-exports.getCabBookingListByPhoneNo = async (phoneNo) => {
-  if (!phoneNo) {
+exports.getBookingsByUserID = async (userID) => {
+  if (!userID) {
     throw new APIError({
-      message: 'Phone number is required',
+      message: 'User ID is required',
       status: httpStatus.BAD_REQUEST,
     });
   }
 
-  const queryResult = await bookingsRepository.findByPhoneNo(phoneNo);
+  const objectId = toObjectId(userID);
 
-  if (!queryResult || queryResult.length === 0) {
+  const filter = {
+    userID: objectId
+  };
+
+  try {
+    // 1. Fetch bookings from the primary vehicle_bookings model
+    const cabBookingsPromise = bookingsRepository.findByFilter(filter);
+
+    // 2. Fetch bookings from the acting_driver_bookings model
+    const actingDriverBookingsPromise = bookingsRepository.findActingDriverBookingsByFilter(filter);
+
+    // Use Promise.all to fetch both lists concurrently (faster)
+    const [cabBookings, actingDriverBookings] = await Promise.all([
+      cabBookingsPromise,
+      actingDriverBookingsPromise
+    ]);
+
+    // 3. Combine and potentially normalize the results
+    const combinedBookings = [
+      ...cabBookings.map(b => ({ ...b.toObject(), type: 'VEHICLE_BOOKING' })),
+      ...actingDriverBookings.map(b => ({ ...b.toObject(), type: 'ACTING_DRIVER_BOOKING' })),
+    ];
+
+    // Optional: Sort the combined list by creation date or pickup date
+    combinedBookings.sort((a, b) => new Date(b.createdAt || b.pickUpDate) - new Date(a.createdAt || a.pickUpDate));
+   
+    if (!combinedBookings || combinedBookings.length === 0) {
+      throw new APIError({
+        message: `No booking available for ${userID}`,
+        status: httpStatus.NOT_FOUND,
+      });
+    }
+
+    return {
+      status: httpStatus.OK,
+      message: 'Records Found',
+      data: combinedBookings,
+    };
+
+  } catch (error) {
+    console.error('Error fetching combined user bookings:', error);
     throw new APIError({
-      message: `No booking available for ${phoneNo}`,
+      message: `No booking available for ${userID}`,
       status: httpStatus.NOT_FOUND,
     });
   }
 
-  return {
-    status: httpStatus.OK,
-    message: 'Records Found',
-    data: queryResult,
-  };
 };
 
 /**
@@ -279,5 +285,36 @@ exports.finalizeBooking = async (reqObj) => {
     status: httpStatus.OK,
     message: 'Booking finalized successfully',
     data: activeBookingResult,
+  };
+};
+
+/**
+ * Get cab booking list by filters
+ * @param {Object} filterObj - Filter object
+ * @returns {Promise<Object>} List of bookings
+ */
+exports.getCabBookingList = async (filterObj) => {
+  const { vehicleType, distance, district, pickUpDate } = filterObj;
+
+  const filterQuery = {};
+
+  if (vehicleType) filterQuery.vehicleType = vehicleType;
+  if (district) filterQuery['pickupAddress.district'] = district;
+  if (pickUpDate) filterQuery.pickUpDate = pickUpDate;
+  // Note: distance filtering can be added here if needed
+
+  if (Object.keys(filterQuery).length === 0) {
+    throw new APIError({
+      message: 'Kindly pass any filter param { vehicleType, distance, district, pickUpDate } to find Cab Bookings',
+      status: httpStatus.BAD_REQUEST,
+    });
+  }
+
+  const queryResult = await bookingsRepository.findByFilter(filterQuery);
+
+  return {
+    status: httpStatus.OK,
+    message: 'Records Found',
+    data: queryResult,
   };
 };

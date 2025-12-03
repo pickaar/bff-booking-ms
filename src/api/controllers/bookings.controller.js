@@ -18,7 +18,6 @@ exports.getActiveBooking = asyncHandler(async (req, res) => {
  */
 exports.getTollDetails = asyncHandler(async (req, res) => {
   const { from, to } = req.query;
-  console.log("CONTROLLER REQ QUERY:", req.query);
   const result = await bookingService.getTollDetails(req.query);
   return successResponse(res, result.message, result.data);
 });
@@ -54,10 +53,9 @@ exports.getCabBookingList = asyncHandler(async (req, res) => {
 /**
  * Get cab booking list by phone number
  */
-exports.getCabBookingListByPhoneNo = asyncHandler(async (req, res) => {
-  const { phoneNo } = req.query;
-
-  const result = await bookingService.getCabBookingListByPhoneNo(phoneNo);
+exports.getBookingsByUserID = asyncHandler(async (req, res) => {
+  const { userID } = req.query;
+  const result = await bookingService.getBookingsByUserID(userID);
   return successResponse(res, result.message, result.data);
 });
 
