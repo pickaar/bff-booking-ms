@@ -12,7 +12,7 @@ class QuotesRepository {
    * @returns {Promise<Object>} Created quote document
    */
   async create(quoteData) {
-    return db.cabquotes.create(quoteData);
+    return db.vehicle_bookings_quotes.create(quoteData);
   }
 
   /**
@@ -21,7 +21,7 @@ class QuotesRepository {
    * @returns {Promise<Object|null>} Quote document or null
    */
   async findByBookingId(bookingId) {
-    return db.cabquotes.findOne({ bookingRefId: toObjectId(bookingId) });
+    return db.vehicle_bookings_quotes.findOne({ bookingRefId: toObjectId(bookingId) }).lean().exec();
   }
 
   /**
@@ -30,7 +30,7 @@ class QuotesRepository {
    * @returns {Promise<number>} Quotes count
    */
   async getQuotesCount(bookingId) {
-    const result = await db.cabquotes.aggregate([
+    const result = await db.vehicle_bookings_quotes.aggregate([
       { $match: { bookingRefId: toObjectId(bookingId) } },
       {
         $project: {
@@ -49,10 +49,10 @@ class QuotesRepository {
    * @param {Object} newQuote - New quote object
    * @returns {Promise<Object>} Updated quote document
    */
-  async addQuote(bookingId, newQuote) {
-    return db.cabquotes.findOneAndUpdate(
+  async addQuote(bookingId, quote) {
+    return db.vehicle_bookings_quotes.findOneAndUpdate(
       { bookingRefId: toObjectId(bookingId) },
-      { $push: { quotesList: newQuote } },
+      { $push: { quotesList: quote } },
       { upsert: false, new: true }
     );
   }

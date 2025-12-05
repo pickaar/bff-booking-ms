@@ -25,15 +25,15 @@ exports.calculatePickaarCommission = (distance) => {
 }
 
 exports.calculateNewQuoteParams = async (quote, distance) => {
-    const quotedAmt = quote.quotedAmt * distance;
-    const beta = quote.beta || 0;
-    const pickaarCommission = quote.pickaarCommission || 0;
+    const quotedAmt = quote.actualQuotedAmount * distance;
+    const beta = quote?.beta || 0;
+    const pickaarCommission = quote?.pickaarCommission || 0;
     const total = quotedAmt + beta + pickaarCommission;
 
-    console.log(quote.quotedAmt + "INSIDE" + total)
+    console.log(quote.actualQuotedAmount + "INSIDE" + total)
 
     return Object.assign({}, {
-        quotedAproxAmt: Math.round(parseInt(total)),
+        finalQuotedAmount: Math.round(parseInt(total)),
         save: 14
     })
 

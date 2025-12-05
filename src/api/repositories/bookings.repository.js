@@ -23,7 +23,7 @@ class BookingsRepository {
    */
   async findById(bookingId) {
     // 🌟 CORRECTED: Using the new model name
-    return db.vehicle_bookings.findById(toObjectId(bookingId));
+    return db.vehicle_bookings.findById(toObjectId(bookingId)).lean().exec();
   }
 
   /**

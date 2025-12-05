@@ -15,7 +15,6 @@ exports.initNewQuotes = asyncHandler(async (req, res) => {
  */
 exports.getQuotes = asyncHandler(async (req, res) => {
   const { bookingId } = req.params;
-  
   const result = await quoteService.getQuotes(bookingId);
   return successResponse(res, result.message, result.data);
 });

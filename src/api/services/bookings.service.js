@@ -9,6 +9,34 @@ const { convertToMongoDate } = require('../../utils/helper');
 const { getRouteInformationWithRoutesAPI } = require('../../utils/googleMap.js');
 const { toObjectId } = require('../../utils/mongoose.js');
 
+
+/**
+ * Get active booking by booking ID
+ * @param {number} bookingId - Booking ID
+ * @returns {Promise<Object>} Booking details
+ */
+exports.getBookingById = async (bookingId) => {
+  if (!bookingId) {
+    throw new APIError({
+      message: 'Booking ID is required',
+      status: httpStatus.BAD_REQUEST,
+    });
+  }
+
+  const result = await bookingsRepository.findById(bookingId);
+
+  if (!result) {
+    throw new APIError({
+      message: 'No booking found for the given ID',
+      status: httpStatus.NOT_FOUND,
+    });
+  }
+
+  return result;
+}
+
+
+
 /**
  * Get active booking by phone number
  * @param {number} phoneNo - Phone number
@@ -229,7 +257,6 @@ exports.getBookingsByUserID = async (userID) => {
     };
 
   } catch (error) {
-    console.error('Error fetching combined user bookings:', error);
     throw new APIError({
       message: `No booking available for ${userID}`,
       status: httpStatus.NOT_FOUND,

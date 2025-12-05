@@ -3,8 +3,8 @@ const Schema = mongoose.Schema;
 
 // Address Schema (remains embedded as it's context-specific to the booking)
 const address = new Schema({
-    latlng: { 
-        type: { type: String, default: "Point" }, 
+    latlng: {
+        type: { type: String, default: "Point" },
         coordinates: { type: [Number] }
     },
     flatHouseNo: { type: String },
@@ -13,7 +13,7 @@ const address = new Schema({
     landmark: { type: String },
     city: { type: String, required: true },
     state: { type: String, required: true },
-    address: { type: String},
+    address: { type: String },
     pincode: { type: Number },
 }, { _id: false });
 
@@ -23,13 +23,17 @@ const keyValueSchema = new Schema({
 }, { _id: false });
 
 var bookingsSchema = new Schema({
-    bookingStatus: { type: Boolean, default: false },
-    userID: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'cust_users', 
-        required: true 
+    bookingStatus: {
+        type: String,
+        default: "IDLE",
+        enum: ["IDLE", "IN_PROGRESS", "COMPLETED", "CANCELLED"]
     },
-    
+    userID: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'cust_users',
+        required: true
+    },
+
     pickupAddress: { type: address, required: true },
     dropAddress: { type: address, required: true },
     pickUpDate: { type: Date, required: true },
@@ -52,7 +56,7 @@ var bookingsSchema = new Schema({
     OthersPhoneNo: { type: Number, minLength: 7, maxLength: 12 },
     OthersName: { type: String },
     isSingleWomen: { type: Boolean, default: false },
-    pickaarCommission: { type: Number},
+    pickaarCommission: { type: Number },
 });
 
 // --- INDEX DEFINITIONS ---
@@ -62,8 +66,8 @@ bookingsSchema.index({ 'pickupAddress.latlng': '2dsphere' });
 bookingsSchema.index({ 'dropAddress.latlng': '2dsphere' });
 
 // Strategic Index on the User Reference
-bookingsSchema.index({ user: 1 }); 
-bookingsSchema.index({ bookingStatus: 1, user: 1 }); 
+bookingsSchema.index({ user: 1 });
+bookingsSchema.index({ bookingStatus: 1, user: 1 });
 
 const bookingsModel = mongoose.model('vehicle_bookings', bookingsSchema)
 
