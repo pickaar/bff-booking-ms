@@ -26,8 +26,8 @@ const { parseQuoteResponse } = require('../../utils/quoteResponseParser');
  */
 exports.initNewQuotes = async (quoteObj) => {
   try {
-    const { bookingId, quote } = quoteObj;
-
+    const { bookingId, bookingType,quote } = quoteObj;
+    console.log('Initializing new quote for bookingId:', bookingType, bookingId);
     const requiredFields = {
       'Booking Id': bookingId,
       'Vendor Id': quote?.vendorId,
@@ -71,7 +71,7 @@ exports.initNewQuotes = async (quoteObj) => {
     newQuote.quote.save = calculatedQuote.save;
 
     // Insert new quote
-    const quoteInsertResult = await quotesRepository.addQuote(bookingId, newQuote.quote);
+    const quoteInsertResult = await quotesRepository.addQuote(bookingId,bookingType, newQuote.quote);
 
     if (!quoteInsertResult) {
       throw new APIError({
@@ -110,6 +110,7 @@ exports.initNewQuotes = async (quoteObj) => {
  * @returns {Object} An object containing two arrays: uniqueVendorIds and uniqueVehicleIds.
  */
 const extractUniqueIds = (quoteList) => {
+  if (quoteList.length === 0) return { vendorIds: [], vehicleIds: [] };
   const uniqueVendorIds = new Set();
   const uniqueVehicleIds = new Set();
 
@@ -164,7 +165,14 @@ exports.getQuotes = async (bookingId) => {
 
   //2. Extract Unique Vendor IDs and Vehicle IDs
   const { vendorIds, vehicleIds } = extractUniqueIds(quotesList || []);
-
+  if (vendorIds.length === 0 && vehicleIds.length === 0) {
+    return {
+      status: httpStatus.OK,
+      message: 'No quotes found for this booking',
+      data: [],
+    };
+  }
+  
   // 3. Batch Fetch Details from User MFE
   const { vendorMap, vehicleMap } = await fetchUserMFEBatchData(vendorIds, vehicleIds);
 

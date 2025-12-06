@@ -26,6 +26,16 @@ const controller = require('../controllers/quotes.controller');
  *               newQuote:
  *                 type: object
  *                 description: New quote details
+ *             example:
+ *               bookingId: "6930b6dadea9178c2deb2cec"
+ *               quote:
+ *                 actualQuotedAmount: 1500
+ *                 extraKM: 20
+ *                 beta: 0
+ *                 isNegotiable: true
+ *                 bookingPrivilege: "RECOMMENDED"
+ *                 vehicleId: "6930b8e98b249b7774f232eb"
+ *                 vendorId: "692fc0cdb5dea3de97ba20fd"
  *     responses:
  *       200:
  *         description: Quote created successfully

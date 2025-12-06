@@ -49,10 +49,10 @@ class QuotesRepository {
    * @param {Object} newQuote - New quote object
    * @returns {Promise<Object>} Updated quote document
    */
-  async addQuote(bookingId, quote) {
+  async addQuote(bookingId, bookingType, quote) {
     return db.vehicle_bookings_quotes.findOneAndUpdate(
       { bookingRefId: toObjectId(bookingId) },
-      { $push: { quotesList: quote } },
+      { $push: { quotesList: quote } , $set: { bookingType: bookingType } },
       { upsert: false, new: true }
     );
   }

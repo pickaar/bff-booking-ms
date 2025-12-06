@@ -11,7 +11,7 @@ const quote = new Schema({
     bookingPrivilege: {
         type: String,
         required: true,
-        enum: ['ECONOMY', 'RECOMMENDED', 'PREMIUM','REGULAR'], default: 'ECONOMY'
+        enum: ['ECONOMY', 'RECOMMENDED', 'PREMIUM', 'REGULAR'], default: 'ECONOMY'
     },
     vehicleId: { type: mongoose.Types.ObjectId },
     vendorId: { type: mongoose.Types.ObjectId },
@@ -20,6 +20,7 @@ const quote = new Schema({
 
 const vehicleQutesSchema = new Schema({
     bookingRefId: { type: mongoose.Types.ObjectId, unique: true },
+    bookingType: { type: String, enum: ['VEHICLE_BOOKING', 'ACTING_DRIVER_BOOKING'], default: 'VEHICLE_BOOKING' },
     quotesList: [quote]
 });
 

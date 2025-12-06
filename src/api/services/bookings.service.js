@@ -78,7 +78,6 @@ exports.getActiveBooking = async (phoneNo) => {
  * @returns {Promise<Object>} Toll details
  */
 exports.getTollDetails = async (tollReqObj) => {
-  console.log("TOLL REQ OBJ:", tollReqObj);
   if (!tollReqObj || !tollReqObj.from || !tollReqObj.to) {
     throw new APIError({
       message: 'Both "from" and "to" addresses are required',
@@ -171,7 +170,7 @@ exports.initCabBooking = async (booking) => {
   // Calculate distance and commission
   booking.pickaarCommission = calculatePickaarCommission(getDistance(booking?.distance?.value));
   booking.pickUpDate = convertToMongoDate(pickUpDate, pickUpTime);
-
+console.log('Creating new booking with data:', booking);
   const newBookingResult = await bookingsRepository.create(booking);
   if (!newBookingResult) {
     throw new APIError({
@@ -183,10 +182,12 @@ exports.initCabBooking = async (booking) => {
   // Create quote document for this booking
   const quoteResult = await quotesRepository.create({
     bookingRefId: newBookingResult._id,
+    bookingType: booking.bookingType,
     quotesList: [],
   });
 
   if (!quoteResult) {
+    console.log('Failed to create quote document for booking:', newBookingResult._id);
     // Consider rolling back the booking creation or logging this for manual intervention
     throw new APIError({
       message: 'Failed to create quote document for the booking',

@@ -57,6 +57,8 @@ var bookingsSchema = new Schema({
     OthersName: { type: String },
     isSingleWomen: { type: Boolean, default: false },
     pickaarCommission: { type: Number },
+    bookingType: { type: String, enum: ['VEHICLE_BOOKING', 'ACTING_DRIVER_BOOKING'], default: 'VEHICLE_BOOKING' },
+    createdAt: { type: Date, default: Date.now },
 });
 
 // --- INDEX DEFINITIONS ---

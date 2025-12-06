@@ -13,6 +13,7 @@ export function parseQuoteResponse(quote, vendor, vehicle, booking) {
         save: quote.save,
         isNegotiable: quote.isNegotiable,
         quotedAproxAmt: quote.finalQuotedAmount,
+        
         feedbackDetails: {},
         moreInfo: [
             {

@@ -36,5 +36,14 @@
   "devDependencies": {
     "eslint": "^9.18.0",
     "nodemon": "^3.1.9"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pickaar/bff-booking-ms.git"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/pickaar/bff-booking-ms/issues"
+  },
+  "homepage": "https://github.com/pickaar/bff-booking-ms#readme"
 }
